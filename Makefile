@@ -33,22 +33,31 @@ F_CPU_3 = 8000000UL
 
 
 # Optimization level -On, n to can be [0, 1, 2, 3, s].
-OPT = -Os  
+OPT = s
+
+# стандарт языка C: С11, С99
+STD = c11
+
+FLAGS_COMPILER = -fpack-struct -fshort-enums -Wall
+
+FLAGS_LINKER = -lm
 
 # Building EEPROM hex
-EEP_FILE = yes  
+EEP_FILE = #yes  
 
 #-----------------------------------------------
 
 # GNU Binutils
-CC = avr-gcc
-OBJCOPY = avr-objcopy
-OBJDUMP = avr-objdump
-SIZE = avr-size
+#Path = "C:/Program Files/Atmel/AVR Tools/avr8-gnu-toolchain-win32_x86/bin/
+Path = "
+CC = $(Path)avr-gcc"
+OBJCOPY = $(Path)avr-objcopy"
+OBJDUMP = $(Path)avr-objdump"
+SIZE = $(Path)avr-size"
 
 
 
-all: $(TARGET_1) $(TARGET_2) $(TARGET_3)
+all: $(TARGET_1) $(TARGET_2) $(TARGET_3) print_end
 
 
 # шаблоны суффиксов имён файлов
@@ -65,6 +74,7 @@ OBJS_3 = $(SRC:.c=$(TEMPLATE_3).o)
 # Linking DEVICE_1
 
 print_target_1:
+	$(CC) --version
 	@echo _______________________________________
 	@echo ________________ begin ________________
 	@echo --------------------------------
@@ -83,8 +93,8 @@ $(TARGET_1): $(eval MCU = $(MCU_1)) \
 	@echo               Linking files for: $(TARGET)
 	@echo -
 
-	$(CC) -mmcu=$(MCU) -Wall $(OPT) -Wl,-Map=$(TARGET).map,--cref \
-                                     -o $(TARGET).elf $(OBJS) -lm
+	$(CC) -mmcu=$(MCU) -Wall -O$(OPT) -Wl,-Map=$(TARGET).map,--cref \
+                                     -o $(TARGET).elf $(OBJS) $(FLAGS_LINKER)
 
 	$(OBJCOPY) -O ihex -R .eeprom -R .fuse -R .lock -R .signature \
                                      $(TARGET).elf $(TARGET).hex
@@ -129,8 +139,8 @@ $(TARGET_2): print_target_2 $(OBJS_2)
 	@echo               Linking files for: $(TARGET)
 	@echo -
 
-	$(CC) -mmcu=$(MCU) -Wall $(OPT) -Wl,-Map=$(TARGET).map,--cref \
-                                     -o $(TARGET).elf $(OBJS) -lm
+	$(CC) -mmcu=$(MCU) -Wall -O$(OPT) -Wl,-Map=$(TARGET).map,--cref \
+                                     -o $(TARGET).elf $(OBJS) $(FLAGS_LINKER)
 
 	$(OBJCOPY) -O ihex -R .eeprom -R .fuse -R .lock -R .signature \
                                      $(TARGET).elf $(TARGET).hex
@@ -170,8 +180,8 @@ $(TARGET_3): print_target_3 $(OBJS_3)
 	@echo               Linking files for: $(TARGET)
 	@echo -
 
-	$(CC) -mmcu=$(MCU) -Wall $(OPT) -Wl,-Map=$(TARGET).map,--cref \
-                                     -o $(TARGET).elf $(OBJS) -lm
+	$(CC) -mmcu=$(MCU) -Wall -O$(OPT) -Wl,-Map=$(TARGET).map,--cref \
+                                     -o $(TARGET).elf $(OBJS) $(FLAGS_LINKER)
 
 	$(OBJCOPY) -O ihex -R .eeprom -R .fuse -R .lock -R .signature \
                                      $(TARGET).elf $(TARGET).hex
@@ -190,6 +200,8 @@ endif
 	@echo ----------------
 	$(SIZE) -C --mcu=$(MCU) $(TARGET).elf
 
+
+print_end:
 	@echo _________________ end _________________
 	@echo .
 
@@ -198,21 +210,21 @@ endif
 
 %$(TEMPLATE_1).o: %.c
 	@echo Compiling file:  $<
-	$(CC) -mmcu=$(MCU) -Wall $(OPT) -DF_CPU=$(F_CPU) -D$(DEVICE) \
+	$(CC) -mmcu=$(MCU) -O$(OPT) -std=$(STD) -DF_CPU=$(F_CPU) -D$(DEVICE) $(FLAGS_COMPILER) \
                                      -c $< -o $@
 
 # Compiling DEVICE_2
 
 %$(TEMPLATE_2).o: %.c
 	@echo Compiling file:  $<
-	$(CC) -mmcu=$(MCU) -Wall $(OPT) -DF_CPU=$(F_CPU) -D$(DEVICE) \
+	$(CC) -mmcu=$(MCU) -O$(OPT) -std=$(STD) -DF_CPU=$(F_CPU) -D$(DEVICE) $(FLAGS_COMPILER) \
                                      -c $< -o $@
 
 # Compiling DEVICE_3
 
 %$(TEMPLATE_3).o: %.c
 	@echo Compiling file:  $<
-	$(CC) -mmcu=$(MCU) -Wall $(OPT) -DF_CPU=$(F_CPU) -D$(DEVICE) \
+	$(CC) -mmcu=$(MCU) -O$(OPT) -std=$(STD) -DF_CPU=$(F_CPU) -D$(DEVICE) $(FLAGS_COMPILER) \
                                      -c $< -o $@
 
 
@@ -230,4 +242,4 @@ clean:
        $(TARGET_1)_eep.hex $(TARGET_2)_eep.hex $(TARGET_3)_eep.hex
 
 # на случай если будут такие файлы, чтобы не отслеживал правила-пустышки
-.PHONY: all clean flash print_target_1 print_target_2 print_target_3 
+.PHONY: all clean flash print_target_1 print_target_2 print_target_3 print_end
