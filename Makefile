@@ -1,7 +1,8 @@
 # / / / / / / / / / / / / / / / / / / / / / / /
 # Makefile for AVR-GCC. Allows build different firmware of one source.
 # Created: 2019.04.06
-# Author: GriDev
+# Version: 1.0.0
+#  Author: GriDev
 # \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
 
 
@@ -35,7 +36,12 @@ F_CPU_3 = 8000000UL
 # Optimization level -On, n to can be [0, 1, 2, 3, s].
 OPT = s
 
-# стандарт языка C: С11, С99
+# Стандарт языка C
+#   c89   - "ANSI" C
+#   gnu89 - c89 plus GCC extensions
+#   c99   - ISO C99 standard (not yet fully implemented)
+#   gnu99 - c99 plus GCC extensions
+#   c11
 STD = c11
 
 FLAGS_COMPILER = -fpack-struct -fshort-enums -Wall
@@ -45,7 +51,8 @@ FLAGS_LINKER = -lm
 # Building EEPROM hex
 EEP_FILE = #yes  
 
-#-----------------------------------------------
+
+# - - - - - - - - - - - - - - - - - - - - - - -
 
 # GNU Binutils
 #Path = "C:/Program Files/Atmel/AVR Tools/avr8-gnu-toolchain-win32_x86/bin/
@@ -57,7 +64,7 @@ SIZE = $(Path)avr-size"
 
 
 
-all: $(TARGET_1) $(TARGET_2) $(TARGET_3) print_end
+all: print_begin $(TARGET_1) $(TARGET_2) $(TARGET_3) print_end
 
 
 # шаблоны суффиксов имён файлов
@@ -71,12 +78,19 @@ OBJS_2 = $(SRC:.c=$(TEMPLATE_2).o)
 OBJS_3 = $(SRC:.c=$(TEMPLATE_3).o)
 
 
-# Linking DEVICE_1
-
-print_target_1:
+print_begin:
 	$(CC) --version
 	@echo _______________________________________
 	@echo ________________ begin ________________
+
+print_end:
+	@echo _________________ end _________________
+	@echo .
+
+
+# Linking DEVICE_1
+
+print_target_1:
 	@echo --------------------------------
 	@echo             Compiling files for: $(TARGET_1)
 	@echo -
@@ -111,7 +125,7 @@ endif
 
 	@echo -
 	@echo ----------------
-	$(SIZE) -C --mcu=$(MCU) $(TARGET).elf
+	$(SIZE) --mcu=$(MCU) --format=avr $(TARGET).elf
 
 #   Меняем конфигурацию для DEVICE_2
 #   В зависимостях или целях в $(TARGET_2) мы этого не сможем сделать, 
@@ -157,7 +171,7 @@ endif
 
 	@echo -
 	@echo ----------------
-	$(SIZE) -C --mcu=$(MCU) $(TARGET).elf
+	$(SIZE) --mcu=$(MCU) --format=avr $(TARGET).elf
 
 #   Меняем конфигурацию для DEVICE_3
 	$(eval MCU = $(MCU_3))
@@ -198,12 +212,7 @@ endif
 
 	@echo -
 	@echo ----------------
-	$(SIZE) -C --mcu=$(MCU) $(TARGET).elf
-
-
-print_end:
-	@echo _________________ end _________________
-	@echo .
+	$(SIZE) --mcu=$(MCU) --format=avr $(TARGET).elf
 
 
 # Compiling DEVICE_1
@@ -241,5 +250,12 @@ clean:
        $(TARGET_1).hex $(TARGET_2).hex $(TARGET_3).hex  \
        $(TARGET_1)_eep.hex $(TARGET_2)_eep.hex $(TARGET_3)_eep.hex
 
+
+#
+
+flash:
+	avrdude -patmega168 -cstk500 -PCOM9 -e -Uflash:w:$(TARGET_1).hex:i
+
+
 # на случай если будут такие файлы, чтобы не отслеживал правила-пустышки
-.PHONY: all clean flash print_target_1 print_target_2 print_target_3 print_end
+.PHONY: all clean flash print_begin print_end print_target_1 print_target_2 print_target_3
