@@ -1,37 +1,11 @@
 # / / / / / / / / / / / / / / / / / / / / / / /
 # Makefile for AVR-GCC. Allows build different firmware of one source.
-# Created: 2019.04.06
+# Created: 2019.04.06 - 2020.02.25
 # Version: 1.0.1
 #  Author: GriDev
 # \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
 
-
-# Эти make-переменные будут переданы в define исходников(при помощи флага -Ddefinition),
-# с их помощю можно делать условную компиляцию, конфигурировать прошивку.
-DEVICE_1 = BLINK        # Основная прошивка
-DEVICE_2 = BLINK_TEST   # Тестовая прошивка
-DEVICE_3 = BLINK_TINY13 # Прошивка для ATtiny13
-
-SRC = main.c timer.c
-
-# DEVICE_1
-
-TARGET_1 = blink
-MCU_1 = atmega168p
-F_CPU_1 = 7372800UL
-
-# DEVICE_2
-
-TARGET_2 = test
-MCU_2 = atmega168p
-F_CPU_2 = 7372800UL
-
-# DEVICE_3
-
-TARGET_3 = tiny13
-MCU_3 = attiny13
-F_CPU_3 = 8000000UL
-
+include Makeconf
 
 # Optimization level
 OPT = s
@@ -45,7 +19,7 @@ STD = c11
   # gnu99 - c99 plus GCC extensions
   # c11
 
-FLAGS_COMPILER = -fpack-struct -fshort-enums -Wall
+FLAGS_COMPILER = -fpack-struct -fshort-enums -Wall -gstabs
 
 FLAGS_LINKER = -lm
 
@@ -64,7 +38,7 @@ OBJDUMP = "$(Path)avr-objdump"
 SIZE = "$(Path)avr-size"
   # '  - такие кавычки в шеле Sublime Text вызывают ошибку почему-то, лучше используем ".
 
-
+PHONY := all
 all: print_begin $(TARGET_1) $(TARGET_2) $(TARGET_3) print_end
 
 
@@ -73,10 +47,10 @@ TEMPLATE = _$(1)
   # $(1) - сюда подставляется TARGET с помощю call
 
 # Указываем GNU make имена файлов-зависимостей которые он будет отслеживать в правилах
-OBJS = $(SRC:.c=$(call TEMPLATE,$(1)).o)
+OBJS = $(SRCS:.c=$(call TEMPLATE,$(1)).o)
   # $(1) - сюда подставляем TARGET с помощю call
 
-
+PHONY += print_begin print_end print_target_1_compiling print_target_2_compiling print_target_3_compiling
 print_begin:
 	$(CC) --version
 	@echo _______________________________________
@@ -86,6 +60,10 @@ print_end:
 	@echo .
 print_target_1_compiling:
 	$(call print_target_compiling_d,$(TARGET_1))
+print_target_2_compiling:
+	$(call print_target_compiling_d,$(TARGET_2))
+print_target_3_compiling:
+	$(call print_target_compiling_d,$(TARGET_3))
 define print_target_compiling_d
 	@echo --------------------------------
 	@echo - - - - - - Compiling files for: $(1)
@@ -96,8 +74,8 @@ endef
 # Compiling
 
 define compiling
-	@echo - $<
-	$(CC) -mmcu=$(MCU) -O$(OPT) -std=$(STD) -DF_CPU=$(F_CPU) -D$(strip $(DEVICE)) $(FLAGS_COMPILER) \
+	@echo $<
+	$(CC) -mmcu=$(MCU) -O$(OPT) -std=$(STD) -DF_CPU=$(F_CPU)UL -D$(strip $(DEVICE)) $(FLAGS_COMPILER) \
                                      -c $< -o $@
 endef
 
@@ -162,10 +140,10 @@ endif
 	$(eval MCU = $(MCU_2))
 	$(eval F_CPU = $(F_CPU_2))
 	$(eval DEVICE = $(DEVICE_2))
-	$(call print_target_compiling_d,$@)
 
 # Linking DEVICE_2
-$(TARGET_2): $(call OBJS,$(TARGET_2))
+$(TARGET_2): print_target_2_compiling \
+             $(call OBJS,$(TARGET_2))
 	$(linking)
 ifeq ($(strip $(EEP_FILE)), +)
 	$(generate_eeprom)
@@ -175,10 +153,10 @@ endif
 	$(eval MCU = $(MCU_3))
 	$(eval F_CPU = $(F_CPU_3))
 	$(eval DEVICE = $(DEVICE_3))
-	$(print_target_compiling_d)
 
 # Linking DEVICE_3
-$(TARGET_3): $(call OBJS,$(TARGET_3))
+$(TARGET_3): print_target_3_compiling \
+             $(call OBJS,$(TARGET_3))
 	$(linking)
 ifeq ($(strip $(EEP_FILE)), +)
 	$(generate_eeprom)
@@ -186,7 +164,7 @@ endif
 	$(finalize)
 
 #
-
+PHONY += clean
 clean:
 	rm -rf $(call OBJS,$(TARGET_1))  \
        $(call OBJS,$(TARGET_2))  \
@@ -200,9 +178,6 @@ clean:
 
 #
 
+PHONY += flash
 flash:
 	avrdude -patmega168 -cstk500 -PCOM9 -e -Uflash:w:$(TARGET_1).hex:i
-
-
-# на случай если будут такие файлы, чтобы не отслеживал правила-пустышки
-.PHONY: all clean flash print_begin print_end print_target_1_compiling
