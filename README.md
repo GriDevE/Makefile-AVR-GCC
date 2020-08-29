@@ -1,8 +1,8 @@
-# Makefile for AVR-GCC
-#### v1.0.0 (2019.04.06 - 2020.02.23)
+# Makefile for projects on AVR-GCC
+#### v1.0.3 (2019.04.06 - 2020.08.29)
 ---
 
-Makefile для AVR-GCC.  
+Makefile для проектов на AVR-GCC.  
 
 ## Features
 
@@ -12,11 +12,16 @@ Makefile для AVR-GCC.
 
 * Вывод команды make all структурирован чтобы было просто понять, что происходит и где возникают ошибки.
 
-* Значимые настройки процесса сборки для удобства вынесены и структурированны в верхней части Makefile.
+* Значимые настройки процесса сборки для удобства вынесены и структурированны в верхней части Makefile.  
+  Настройки относящиеся к целям вынесены в отдельный файл Makeconf.
 
 * Даёт возможность одной командой собирать несколько прошивок с различной конфигурацией из одного исходного кода.
 
-* 
+
+## Как использовать
+1. Копируем Makefile и Makeconf в свой проект.
+2. Конфигурируем и адаптируем Makefile для своего проекта.
+
 
 ## ??Предлагаемые правила ведения проекта??
 
@@ -31,7 +36,7 @@ Makefile для AVR-GCC.
 ??Подробнее описать в каких случаях make all не пересобирёт прошивку корректно??
     
 `make clean`
-Очистить выходные сборочные файлы.
+Очистить выходные файлы.
 
 `make flash`
 Прошить устройство hex-файлом, используя avrdude.  
@@ -49,4 +54,20 @@ Makefile для AVR-GCC.
 
 
 ## Frequently Asked Questions
+
+
+## Links
+### Документация GNU make
+https://www.gnu.org/software/make/manual/html_node/
+### AVR and Arm Toolchains (Compiler AVR-GCC)
+https://www.microchip.com/mplab/avr-support/avr-and-arm-toolchains-c-compilers  
+Документация здесь:  
+C:\Program Files (x86)\avr8-gnu-toolchain-win32_x86\doc\
+### Документация AVR-GCC, некоторые ссылки
+https://gcc.gnu.org/onlinedocs/gcc/
+https://gcc.gnu.org/onlinedocs/gcc/AVR-Options.html
+https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html
+https://gcc.gnu.org/onlinedocs/gcc/Preprocessor-Options.html
+### Документация AVR Libc
+http://www.nongnu.org/avr-libc/user-manual/index.html
 
