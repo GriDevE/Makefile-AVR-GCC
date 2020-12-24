@@ -1,7 +1,6 @@
 # / / / / / / / / / / / / / / / / / / / / / / /
 # Makefile for projects on AVR-GCC. Allows build different firmware of one source.
-# Created: 2019.04.06 - 2020.08.29
-# Version: 1.0.3
+# Version: 1.0.4 (project start: 2019.04.06)
 #  Author: GriDev
 #    Link: https://github.com/GriDevE/Makefile-AVR-GCC
 # \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \
@@ -29,7 +28,7 @@ FLAGS_COMPILER += -fshort-enums
 #FLAGS_COMPILER += -fdata-sections
 
 FLAGS_LINKER = -lm
-#FLAGS_LINKER += -Wl,--gc-sections
+#FLAGS_LINKER += -Wl,--gc-sections,--section-start=.text=$(strip $(START_ADDRESS))
 
 # Building EEPROM hex
 EEP_FILE = +
@@ -55,7 +54,7 @@ PHONY := all
 all: print_begin $(TARGET_1) $(TARGET_2) $(TARGET_3) print_end
 
 
-# Шаблон суффикса имëн генерируемых файлов
+# Шаблон суффикса имён генерируемых файлов
 TEMPLATE = _$(1)
   # $(1) - Сюда подставляется TARGET с помощю call
 
@@ -140,7 +139,7 @@ $(call OBJSA,$(TARGET_1)): $(ASRCS)
 	$(compiling)
 $(call OBJSA,$(TARGET_2)): $(ASRCS)
 	$(assembling)
-	
+
 # Compiling DEVICE_3
 %$(call TEMPLATE,$(TARGET_3)).o: %.c
 	$(compiling)
@@ -169,6 +168,7 @@ endef
 $(TARGET_1): $(eval MCU = $(MCU_1)) \
              $(eval F_CPU = $(F_CPU_1)) \
              $(eval DEVICE = $(DEVICE_1)) \
+             $(eval START_ADDRESS = $(START_ADDRESS_1)) \
              print_target_1_compiling \
              $(call OBJS,$(TARGET_1))
 	$(linking)
@@ -182,6 +182,7 @@ $(TARGET_1): $(eval MCU = $(MCU_1)) \
 	$(eval MCU = $(MCU_2))
 	$(eval F_CPU = $(F_CPU_2))
 	$(eval DEVICE = $(DEVICE_2))
+	$(eval START_ADDRESS = $(START_ADDRESS_2))
 
 # Building DEVICE_2
 $(TARGET_2): print_target_2_compiling \
@@ -192,6 +193,7 @@ $(TARGET_2): print_target_2_compiling \
 	$(eval MCU = $(MCU_3))
 	$(eval F_CPU = $(F_CPU_3))
 	$(eval DEVICE = $(DEVICE_3))
+	$(eval START_ADDRESS = $(START_ADDRESS_3))
 
 # Building DEVICE_3
 $(TARGET_3): print_target_3_compiling \
@@ -200,14 +202,37 @@ $(TARGET_3): print_target_3_compiling \
 	$(finalize)
 
 #
-CLEAN_LIST = $(call OBJS,$(1))  \
-             $(basename $(call OBJSA,$(1))).lss  \
-             $(1).elf  \
-             $(1).map  \
-             $(1).lss  \
-             $(1).bin  \
+PHONY += merge_boot
+merge_boot:
+	@echo --------------------------------
+	@echo - - - - - - - Merging with the bootloader
+	@echo -
+	"srec_cat.exe"  \
+        -Output_Block_Size 16 $(TARGET_1).hex -I bootloader/boot.hex -I -o $(TARGET_1)_boot.hex -I
+
+#
+
+CLEAN_LIST = $(strip $(call OBJS,$(1)) )  \
              $(1).hex  \
-             $(1)_eep.hex
+             $(1).elf
+ifeq ($(strip $(MAP_FILE)), +)
+CLEAN_LIST +=$(1).map
+endif
+ifeq ($(strip $(BIN_FILE)), +)
+CLEAN_LIST +=$(1).bin
+endif
+ifeq ($(strip $(LSS_FILE)), +)
+CLEAN_LIST +=$(1).lss
+endif
+ifeq ($(strip $(EEP_FILE)), +)
+CLEAN_LIST +=$(1)_eep.hex
+endif
+ifneq ($(strip $(ASRCS)),)
+ifeq ($(strip $(LSS_FILE)), +)
+ASRCs = $(ASRCS:.s=.lss)
+CLEAN_LIST +=$(ASRCs:.S=.lss)
+endif
+endif
 
 PHONY += clean
 clean:

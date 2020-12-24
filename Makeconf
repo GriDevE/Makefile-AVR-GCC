@@ -1,0 +1,33 @@
+
+SRCS = main.c \
+       timer.c
+ASRCS = xitoa.S # assembler.S testa.s
+
+
+# DEVICE_1
+TARGET_1 = blink
+MCU_1 = atmega168p
+F_CPU_1 = 7372800
+START_ADDRESS_1 = 0
+
+# DEVICE_2
+TARGET_2 = test
+MCU_2 = atmega168p
+F_CPU_2 = 7372800
+START_ADDRESS_2 = 0
+
+# DEVICE_3
+TARGET_3 = tiny13
+MCU_3 = attiny13
+F_CPU_3 = 8000000
+START_ADDRESS_3 = 0
+
+
+# Эти make-переменные будут переданы в define
+# исходников (при помощи флага -Ddefinition),
+# с их помощю можно будет делать условную компиляцию,
+# конфигурировать прошивку под разные устройства.
+DEVICE_1 = BLINK        # Основная прошивка
+DEVICE_2 = BLINK_TEST   # Тестовая прошивка
+DEVICE_3 = BLINK_TINY13 # Прошивка для ATtiny13
+

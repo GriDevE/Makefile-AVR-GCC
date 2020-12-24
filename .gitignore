@@ -1,9 +1,11 @@
 *.hex
-*.bin
-*.lss
-*.map
 *.elf
 *.d
 *.o
-diff
-*
+*.bin
+*.lss
+*.lst
+*.map
+*.eep
+*.bak
+diff*

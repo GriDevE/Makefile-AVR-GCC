@@ -1,5 +1,7 @@
 # Makefile for projects on AVR-GCC
-#### v1.0.3 (2019.04.06 - 2020.08.29)
+#### v1.0.4 (project start: 2019.04.06)
+#### Compiler: avr-gcc (AVR_8_bit_GNU_Toolchain_3.6.2_1759) 5.4.0
+#### Author: GriDev
 ---
 
 Makefile для проектов на AVR-GCC.  
@@ -63,7 +65,7 @@ https://www.gnu.org/software/make/manual/html_node/
 https://www.microchip.com/mplab/avr-support/avr-and-arm-toolchains-c-compilers  
 Документация здесь:  
 C:\Program Files (x86)\avr8-gnu-toolchain-win32_x86\doc\
-### Документация AVR-GCC, некоторые ссылки
+### Документация GCC, AVR-GCC, некоторые ссылки
 https://gcc.gnu.org/onlinedocs/gcc/
 https://gcc.gnu.org/onlinedocs/gcc/AVR-Options.html
 https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html
